@@ -38,3 +38,4 @@ POSSIBILITY OF SUCH DAMAGE.  */
 #define IS_ABSOLUTE_PATH(f) ((f)[0] == '/')
 
 #endif
+

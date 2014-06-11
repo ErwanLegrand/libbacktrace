@@ -138,9 +138,11 @@ add_library (backtrace STATIC EXCLUDE_FROM_ALL
     ${FORMAT_FILE}
     ${VIEW_FILE}
     ${ALLOC_FILE}
+    atomic.c
     fileline.c
     posix.c
     print.c
+    sort.c
     state.c
 )
 set_target_properties (backtrace PROPERTIES
@@ -154,4 +156,9 @@ if (ENABLE_LIBBACKTRACE_TEST)
     set_property (SOURCE btest.c PROPERTY COMPILE_FLAGS "-g")
     target_link_libraries (btest backtrace)
     add_test (test-libbacktrace btest)
+    add_executable (stest stest.c)
+    set_property (SOURCE stest.c PROPERTY COMPILE_FLAGS "-g")
+    target_link_libraries (stest backtrace)
+    add_test (test-libbacktrace-sort stest)
 endif ()
+
