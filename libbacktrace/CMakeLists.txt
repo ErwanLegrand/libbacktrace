@@ -133,7 +133,9 @@ include_directories (BEFORE
 include_directories (
     auxincl
 )
-add_library (backtrace STATIC EXCLUDE_FROM_ALL
+
+# Add target library
+add_library ("backtrace" SHARED
     ${BACKTRACE_FILE}
     ${FORMAT_FILE}
     ${VIEW_FILE}
@@ -149,6 +151,11 @@ set_target_properties (backtrace PROPERTIES
     COMPILE_FLAGS "${CMAKE_SHARED_LIBRARY_C_FLAGS}"
 )
 
+# Install
+install (FILES "backtrace.h" DESTINATION "include/libbacktrace")
+install (TARGETS "backtrace" DESTINATION "lib")
+
+# Tests
 set (ENABLE_LIBBACKTRACE_TEST false CACHE BOOL "Enable libbacktrace testing")
 if (ENABLE_LIBBACKTRACE_TEST)
     enable_testing ()
