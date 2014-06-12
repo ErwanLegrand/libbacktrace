@@ -44,7 +44,7 @@ if (HAVE_BACKTRACE)
 else ()
     set (BACKTRACE_FILE nounwind.c)
     set (BACKTRACE_SUPPORTED 0)
-    message (STATUS "libunwind not found. Disabling Backtrace support.")
+    message (STATUS "_Unwind_Backtrace() not found. Disabling Backtrace support.")
 endif ()
 
 include (CheckCCompilerFlag)
