@@ -152,7 +152,7 @@ set_target_properties (backtrace PROPERTIES
 )
 
 # Install
-install (FILES "backtrace.h" DESTINATION "include/libbacktrace")
+install (FILES "backtrace.h" "${CMAKE_CURRENT_BINARY_DIR}/backtrace-supported.h" DESTINATION "include/libbacktrace")
 install (TARGETS "backtrace" DESTINATION "lib")
 
 # Tests
