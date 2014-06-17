@@ -40,9 +40,9 @@ check_symbol_exists (_Unwind_Backtrace unwind.h HAVE_BACKTRACE)
 check_symbol_exists (_Unwind_GetIPInfo unwind.h HAVE_GETIPINFO)
 
 if (HAVE_BACKTRACE)
-    set (BACKTRACE_FILE backtrace.c simple.c)
+    set (BACKTRACE_FILE libbacktrace/backtrace.c libbacktrace/simple.c)
 else ()
-    set (BACKTRACE_FILE nounwind.c)
+    set (BACKTRACE_FILE libbacktrace/nounwind.c)
     set (BACKTRACE_SUPPORTED 0)
     message (STATUS "_Unwind_Backtrace() not found. Disabling Backtrace support.")
 endif ()
@@ -73,10 +73,10 @@ else ()
 endif ()
 
 if (CMAKE_EXECUTABLE_FORMAT STREQUAL "ELF")
-    set (FORMAT_FILE elf.c dwarf.c)
+    set (FORMAT_FILE libbacktrace/elf.c libbacktrace/dwarf.c)
     math (EXPR BACKTRACE_ELF_SIZE 8*${CMAKE_C_SIZEOF_DATA_PTR})
 else ()
-    set (FORMAT_FILE unknown.c)
+    set (FORMAT_FILE libbacktrace/unknown.c)
     set (BACKTRACE_SUPPORTED 0)
     message (STATUS "Executable format is not ELF. Disabling Backtrace support.")
 endif ()
@@ -84,20 +84,20 @@ endif ()
 check_symbol_exists (mmap sys/mman.h HAVE_MMAP)
 
 if (HAVE_MMAP)
-    set (VIEW_FILE mmapio.c)
+    set (VIEW_FILE libbacktrace/mmapio.c)
     check_symbol_exists (MAP_ANONYMOUS sys/mman.h HAVE_MMAP_ANONYMOUS)
     check_symbol_exists (MAP_ANON sys/mman.h HAVE_MMAP_ANON)
     if (HAVE_MMAP_ANONYMOUS AND HAVE_MMAP_ANON)
-	set (ALLOC_FILE mmap.c)
+	set (ALLOC_FILE libbacktrace/mmap.c)
     else ()
-	set (ALLOC_FILE alloc.c)
+	set (ALLOC_FILE libbacktrace/alloc.c)
     endif ()
 else ()
-    set (VIEW_FILE read.c)
-    set (ALLOC_FILE alloc.c)
+    set (VIEW_FILE libbacktrace/read.c)
+    set (ALLOC_FILE libbacktrace/alloc.c)
 endif ()
 
-if (ALLOC_FILE STREQUAL "alloc.c")
+if (ALLOC_FILE STREQUAL "libbacktrace/alloc.c")
     set (BACKTRACE_USES_MALLOC 1)
 else ()
     set (BACKTRACE_USES_MALLOC 0)
@@ -123,15 +123,16 @@ if (NOT HAVE_DWARF_H AND NOT HAVE_LIBDWARF_DWARF_H)
     message (STATUS "libdwarf not found. Disabling Backtrace support.")
 endif ()
 
-configure_file (backtrace-supported.h.in backtrace-supported.h)
+configure_file (libbacktrace/backtrace-supported.h.in backtrace-supported.h)
 
-configure_file (config.h.in.cmake config.h)
+configure_file (libbacktrace/config.h.in.cmake config.h)
 
 include_directories (BEFORE
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 include_directories (
     auxincl
+    libbacktrace
 )
 
 # Add target library
@@ -140,19 +141,19 @@ add_library ("backtrace" SHARED
     ${FORMAT_FILE}
     ${VIEW_FILE}
     ${ALLOC_FILE}
-    atomic.c
-    fileline.c
-    posix.c
-    print.c
-    sort.c
-    state.c
+    libbacktrace/atomic.c
+    libbacktrace/fileline.c
+    libbacktrace/posix.c
+    libbacktrace/print.c
+    libbacktrace/sort.c
+    libbacktrace/state.c
 )
 set_target_properties (backtrace PROPERTIES
     COMPILE_FLAGS "${CMAKE_SHARED_LIBRARY_C_FLAGS}"
 )
 
 # Install
-install (FILES "backtrace.h" "${CMAKE_CURRENT_BINARY_DIR}/backtrace-supported.h" DESTINATION "include/libbacktrace")
+install (FILES "libbacktrace/backtrace.h" "${CMAKE_CURRENT_BINARY_DIR}/backtrace-supported.h" DESTINATION "include/libbacktrace")
 install (TARGETS "backtrace" DESTINATION "lib")
 
 # Tests
