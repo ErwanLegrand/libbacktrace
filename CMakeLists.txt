@@ -171,3 +171,8 @@ if (ENABLE_LIBBACKTRACE_TEST)
     add_test (test-libbacktrace-sort stest)
 endif ()
 
+#example
+add_executable (example examples/bt.c)
+set_property (SOURCE examples/bt.c PROPERTY COMPILE_FLAGS "-g")
+target_link_libraries (example backtrace)
+

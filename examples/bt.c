@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include <libbacktrace/backtrace.h>
-#include <libbacktrace/backtrace-supported.h>
+#include "backtrace.h"
+#include "backtrace-supported.h"
 
 struct bt_ctx {
 	struct backtrace_state *state;
