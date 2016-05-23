@@ -1,0 +1,90 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+# Sample debian/rules that uses debhelper.
+# This file was originally written by Joey Hess and Craig Small.
+# As a special exception, when this file is copied by dh-make into a
+# dh-make output file, you may use that output file without restriction.
+# This special exception was added by Craig Small in version 0.37 of dh-make.
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+
+builddir/Makefile:
+	dh_testdir
+	# Add here commands to configure the package.
+	mkdir -p builddir
+	cd builddir && cmake .. -G'Unix Makefiles' -DENABLE_LIBBACKTRACE_TEST=true -DBACKTRACE_SUPPORTS_DATA=true -DCMAKE_INSTALL_PREFIX=$(CURDIR)/debian/@PPA_NAME@@PPA_INSTALL_PATH@
+
+build: build-stamp
+
+build-stamp:  builddir/Makefile 
+	dh_testdir
+
+	# Add here commands to compile the package.
+	$(MAKE) @PPA_THREADS_SWITCH@ -C builddir
+	# $(MAKE) -C builddir xqdoc sausaxqdoc
+	#docbook-to-man debian/zorba.sgml > zorba.1
+
+	touch $@
+
+clean: 
+	dh_testdir
+	dh_testroot
+	rm -f build-stamp 
+
+	# Add here commands to clean up after the build process.
+	rm -rf builddir
+
+
+	dh_clean 
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_prep  
+	dh_installdirs
+
+	# Add here commands to install the package into debian/sausalito-coresdk.
+	cd builddir && make install
+	#@PPA_INSTALL_COMMAND@
+	#$(MAKE) doc
+
+# Build architecture-independent files here.
+binary-indep: install
+# We have nothing to do by default.
+
+# Build architecture-dependent files here.
+binary-arch: install
+	dh_testdir
+	dh_testroot
+#	dh_installchangelogs ChangeLog
+#	dh_installdocs
+#	dh_installexamples
+#	dh_install
+#	dh_installmenu
+#	dh_installdebconf
+#	dh_installlogrotate
+#	dh_installemacsen
+#	dh_installpam
+#	dh_installmime
+#	dh_python
+#	dh_installinit
+#	dh_installcron
+#	dh_installinfo info.txt
+#	dh_installman
+	dh_link "@PPA_INSTALL_PATH@" "/usr"
+#	dh_strip --dbg-package=@PPA_NAME@-dbg
+	dh_compress
+	dh_fixperms
+#	dh_perl
+	dh_makeshlibs
+	dh_installdeb
+	dh_shlibdeps -l$(CURDIR)/debian/@PPA_NAME@@PPA_INSTALL_PATH@/lib
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install
+

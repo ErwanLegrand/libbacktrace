@@ -176,3 +176,6 @@ add_executable (example examples/bt.c)
 set_property (SOURCE examples/bt.c PROPERTY COMPILE_FLAGS "-g")
 target_link_libraries (example backtrace)
 
+#packaging
+ADD_SUBDIRECTORY(packaging)
+
