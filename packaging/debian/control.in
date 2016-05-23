@@ -1,0 +1,14 @@
+Source: @PPA_NAME@
+Section: lib
+Priority: optional
+Maintainer: @PPA_MAINTAINER@
+Build-Depends: @PPA_BUILD_DEPENDENCIES@
+Standards-Version: 3.9.3
+Homepage: @PPA_HOMEPAGE@
+
+Package: @PPA_NAME@
+Architecture: any
+Multi-Arch: same
+Depends: @PPA_DEPENDENCIES@
+Description: Backtrace library
+ Backtrace library

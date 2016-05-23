@@ -1,5 +1,5 @@
 /* fileline.c -- Get file and line number information in a backtrace.
-   Copyright (C) 2012-2014 Free Software Foundation, Inc.
+   Copyright (C) 2012-2016 Free Software Foundation, Inc.
    Written by Ian Lance Taylor, Google.
 
 Redistribution and use in source and binary forms, with or without
@@ -37,6 +37,8 @@ POSSIBILITY OF SUCH DAMAGE.  */
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "backtrace.h"
 #include "internal.h"
@@ -106,8 +108,17 @@ fileline_initialize (struct backtrace_state *state,
       if (filename == NULL)
 	continue;
 
-      descriptor = backtrace_open (filename, error_callback, data,
-				   &does_not_exist);
+      /* Try opening the debug symbols in /usr/lib/debug first */
+      char *filenameDebugSymbols = (char*) malloc((strlen(filename) + strlen("/usr/lib/debug") + 1)*sizeof(char));
+      strcpy(filenameDebugSymbols, "/usr/lib/debug");
+      strcat (filenameDebugSymbols, filename);
+      if (access(filenameDebugSymbols, R_OK) != -1)
+        descriptor = backtrace_open (filenameDebugSymbols, error_callback, data, &does_not_exist);
+      else
+        descriptor = backtrace_open (filename, error_callback, data, &does_not_exist);
+
+      free(filenameDebugSymbols);
+
       if (descriptor < 0 && !does_not_exist)
 	{
 	  called_error_callback = 1;

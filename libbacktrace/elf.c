@@ -1,5 +1,5 @@
 /* elf.c -- Get debug data from an ELF file for backtraces.
-   Copyright (C) 2012-2014 Free Software Foundation, Inc.
+   Copyright (C) 2012-2016 Free Software Foundation, Inc.
    Written by Ian Lance Taylor, Google.
 
 Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ POSSIBILITY OF SUCH DAMAGE.  */
 
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <sys/types.h>
 
 #ifdef HAVE_DL_ITERATE_PHDR
@@ -791,7 +792,6 @@ elf_add (struct backtrace_state *state, int descriptor, uintptr_t base_address,
     {
       if (!backtrace_close (descriptor, error_callback, data))
 	goto fail;
-      *fileline_fn = elf_nodebug;
       return 1;
     }
 
@@ -867,6 +867,9 @@ struct phdr_data
    libraries.  */
 
 static int
+#ifdef __i386__
+__attribute__ ((__force_align_arg_pointer__))
+#endif
 phdr_callback (struct dl_phdr_info *info, size_t size ATTRIBUTE_UNUSED,
 	       void *pdata)
 {
@@ -894,8 +897,17 @@ phdr_callback (struct dl_phdr_info *info, size_t size ATTRIBUTE_UNUSED,
 	  pd->exe_descriptor = -1;
 	}
 
-      descriptor = backtrace_open (info->dlpi_name, pd->error_callback,
-				   pd->data, &does_not_exist);
+      /* Try opening the debug symbols in /usr/lib/debug first */
+      char *filenameDebugSymbols = (char*) malloc((strlen(info->dlpi_name) + strlen("/usr/lib/debug") + 1)*sizeof(char));
+      strcpy(filenameDebugSymbols, "/usr/lib/debug");
+      strcat (filenameDebugSymbols, info->dlpi_name);
+      if (access(filenameDebugSymbols, R_OK) != -1)
+        descriptor = backtrace_open (filenameDebugSymbols, pd->error_callback, pd->data, &does_not_exist);
+      else
+        descriptor = backtrace_open (info->dlpi_name, pd->error_callback, pd->data, &does_not_exist);
+
+      free(filenameDebugSymbols);
+
       if (descriptor < 0)
 	return 0;
     }
@@ -925,7 +937,7 @@ backtrace_initialize (struct backtrace_state *state, int descriptor,
   int ret;
   int found_sym;
   int found_dwarf;
-  fileline elf_fileline_fn;
+  fileline elf_fileline_fn = elf_nodebug;
   struct phdr_data pd;
 
   ret = elf_add (state, descriptor, 0, error_callback, data, &elf_fileline_fn,
@@ -955,7 +967,8 @@ backtrace_initialize (struct backtrace_state *state, int descriptor,
       if (found_sym)
 	backtrace_atomic_store_pointer (&state->syminfo_fn, elf_syminfo);
       else
-	__sync_bool_compare_and_swap (&state->syminfo_fn, NULL, elf_nosyms);
+	(void) __sync_bool_compare_and_swap (&state->syminfo_fn, NULL,
+					     elf_nosyms);
     }
 
   if (!state->threaded)
