@@ -34,6 +34,7 @@ POSSIBILITY OF SUCH DAMAGE.  */
 
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <sys/types.h>
 
 #ifdef HAVE_DL_ITERATE_PHDR
@@ -896,8 +897,17 @@ phdr_callback (struct dl_phdr_info *info, size_t size ATTRIBUTE_UNUSED,
 	  pd->exe_descriptor = -1;
 	}
 
-      descriptor = backtrace_open (info->dlpi_name, pd->error_callback,
-				   pd->data, &does_not_exist);
+      /* Try opening the debug symbols in /usr/lib/debug first */
+      char *filenameDebugSymbols = (char*) malloc((strlen(info->dlpi_name) + strlen("/usr/lib/debug") + 1)*sizeof(char));
+      strcpy(filenameDebugSymbols, "/usr/lib/debug");
+      strcat (filenameDebugSymbols, info->dlpi_name);
+      if (access(filenameDebugSymbols, R_OK) != -1)
+        descriptor = backtrace_open (filenameDebugSymbols, pd->error_callback, pd->data, &does_not_exist);
+      else
+        descriptor = backtrace_open (info->dlpi_name, pd->error_callback, pd->data, &does_not_exist);
+
+      free(filenameDebugSymbols);
+
       if (descriptor < 0)
 	return 0;
     }
