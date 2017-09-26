@@ -1,6 +1,6 @@
-UPDATE: Ian Lance Taylor has now made a standalone version of his excellent libbacktrace available on GitHub! It is available here: https://github.com/ianlancetaylor/libbacktrace
+**UPDATE:** Ian Lance Taylor has now made a standalone version of his excellent libbacktrace available on GitHub! It is available here: https://github.com/ianlancetaylor/libbacktrace
 
-Please use ILT's repository. The only reason why you may find the current repository valuable is it uses CMake while TLT's repository uses automake/autoconf.
+**Please use ILT's repository.** The only reason why you may find the current repository valuable is it uses CMake while TLT's repository uses automake/autoconf.
 
 This is a standalone version of libbacktrace.
 
